@@ -10,25 +10,47 @@
     <p>Se não redirecionar em 2 segundos, verifique se o bloqueio de pop-up está ativado.</p>
 
     <script>
-      // ✅ COLE AQUI A URL DO SEU WEB APP (Apps Script)
-      const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzlSDAshFhVL0HJ1y1VTEdJVENb7QO5LSXEaCahyEsSIijVtjRVhL5RDAjCBz1uEpmn1g/exec";
+  // URL do seu Web App (Apps Script)
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzlSDAshFhVL0HJ1y1VTEdJVENb7QO5LSXEaCahyEsSIijVtjRVhL5RDAjCBz1uEpmn1g/exec";
 
-      const qs = new URLSearchParams(window.location.search);
-      const src = qs.get("src") || "SITE";
-      const ts = Date.now().toString();
+  // Seu WhatsApp (sem + e sem espaços)
+  const PHONE = "5511996900033";
 
-      if (!WEBAPP_URL || WEBAPP_URL.includes("COLE_AQUI")) {
-        document.body.innerHTML = `
-          <h2>Falta configurar o Web App</h2>
-          <p>Edite o arquivo <b>w/index.html</b> e cole a URL do Apps Script em <code>WEBAPP_URL</code>.</p>
-        `;
-      } else {
-        // Envia para o Apps Script registrar o clique e redirecionar para o WhatsApp
-        const glue = WEBAPP_URL.includes("?") ? "&" : "?";
-        const url = `${WEBAPP_URL}${glue}src=${encodeURIComponent(src)}&ts=${encodeURIComponent(ts)}`;
+  const qs = new URLSearchParams(window.location.search);
+  const src = qs.get("src") || "SITE";
+  const ts = Date.now();
 
-        window.location.replace(url);
-      }
-    </script>
+  // 1) registra clique no Apps Script (sem travar o redirect)
+  const payload = {
+    type: "wa_click",
+    payload: {
+      src,
+      ts,
+      ua: navigator.userAgent,
+      page: window.location.href
+    }
+  };
+
+  try {
+    if (navigator.sendBeacon) {
+      const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+      navigator.sendBeacon(WEBAPP_URL, blob);
+    } else {
+      // fallback: tenta POST normal (não bloqueia)
+      fetch(WEBAPP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        mode: "no-cors"
+      }).catch(() => {});
+    }
+  } catch (e) {}
+
+  // 2) abre WhatsApp (top-level)
+  const text = `Olá! Vim pela Lista VIP (SRC: ${src}). Quero opções de lançamento/em obras/pronto em São Paulo.`;
+  const waUrl = `https://wa.me/${PHONE}?text=${encodeURIComponent(text)}`;
+  window.location.replace(waUrl);
+</script>
+
   </body>
 </html>
