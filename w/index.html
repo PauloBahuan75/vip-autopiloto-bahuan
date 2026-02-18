@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecionando para WhatsApp...</title>
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+</head>
+<body>
+  <section>
+    <div class="container">
+      <h1>Redirecionando para WhatsApp...</h1>
+      <p>Se não abrir automaticamente, <a id="manualWa" href="#">clique aqui</a>.</p>
+    </div>
+  </section>
+
+  <script src="/assets/js/config.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const src = params.get('src') || (window.VIP_CONFIG && window.VIP_CONFIG.defaultSrc) || 'site-organico';
+    const tipo = params.get('tipo') || 'imóvel';
+    const bairro = params.get('bairro') || 'São Paulo';
+    const entrada = params.get('entrada') || 'a definir';
+    const prazo = params.get('prazo') || 'a definir';
+    const msg = `Olá! Vim pela Lista VIP (SRC: ${src}). Busco ${tipo} em ${bairro}, entrada ${entrada}, prazo ${prazo}.`;
+    document.getElementById('manualWa').href = `https://wa.me/${(window.VIP_CONFIG && window.VIP_CONFIG.whatsappNumber) || '5511996900033'}?text=${encodeURIComponent(msg)}`;
+  </script>
+  <script src="/assets/js/w-redirect.js"></script>
+</body>
+</html>
