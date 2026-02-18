@@ -9,6 +9,8 @@
     <h2>Quase lá ✅</h2>
     <p>Para continuar, clique em um dos botões abaixo para abrir o WhatsApp.</p>
 
+    <p id="origem" style="color:#666; font-size: 13px; margin-top: 6px;"></p>
+
     <p>
       <a id="btnWa1" href="#" style="
         display:inline-block; padding:14px 18px; border-radius:10px;
@@ -36,6 +38,15 @@
       const qs = new URLSearchParams(window.location.search);
       const src = qs.get("src") || "SITE";
 
+      // ✅ Se vier "page" (ex.: clique em uma página SEO), registramos essa origem
+      // Exemplo: /w/?src=SEO-MORUMBI&page=/vip-autopiloto-bahuan/seo/morumbi-lancamentos.html
+      const pageParam = qs.get("page") || "";
+      const page = pageParam ? decodeURIComponent(pageParam) : window.location.href;
+
+      // Mostra na tela (opcional, ajuda a validar)
+      const origemEl = document.getElementById("origem");
+      origemEl.textContent = pageParam ? `Origem: ${pageParam}` : `Origem: ${src}`;
+
       const text = `Olá! Vim pela Lista VIP (SRC: ${src}). Quero opções de lançamento/em obras/pronto em São Paulo.`;
 
       const wa1 = `https://wa.me/${PHONE}?text=${encodeURIComponent(text)}`;
@@ -55,7 +66,7 @@
         type: "wa_click",
         payload: {
           src,
-          page: window.location.href,
+          page,                 // ✅ agora grava a página SEO/origem quando existir
           ua: navigator.userAgent
         }
       };
