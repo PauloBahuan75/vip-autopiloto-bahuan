@@ -1,30 +1,34 @@
 <!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redirecionando para WhatsApp...</title>
-  <link rel="stylesheet" href="/assets/css/styles.css" />
-</head>
-<body>
-  <section>
-    <div class="container">
-      <h1>Redirecionando para WhatsApp...</h1>
-      <p>Se não abrir automaticamente, <a id="manualWa" href="#">clique aqui</a>.</p>
-    </div>
-  </section>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Redirecionando para o WhatsApp…</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; padding: 24px;">
+    <h2>Redirecionando para o WhatsApp…</h2>
+    <p>Se não redirecionar em 2 segundos, verifique se o bloqueio de pop-up está ativado.</p>
 
-  <script src="/assets/js/config.js"></script>
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const src = params.get('src') || (window.VIP_CONFIG && window.VIP_CONFIG.defaultSrc) || 'site-organico';
-    const tipo = params.get('tipo') || 'imóvel';
-    const bairro = params.get('bairro') || 'São Paulo';
-    const entrada = params.get('entrada') || 'a definir';
-    const prazo = params.get('prazo') || 'a definir';
-    const msg = `Olá! Vim pela Lista VIP (SRC: ${src}). Busco ${tipo} em ${bairro}, entrada ${entrada}, prazo ${prazo}.`;
-    document.getElementById('manualWa').href = `https://wa.me/${(window.VIP_CONFIG && window.VIP_CONFIG.whatsappNumber) || '5511996900033'}?text=${encodeURIComponent(msg)}`;
-  </script>
-  <script src="/assets/js/w-redirect.js"></script>
-</body>
+    <script>
+      // ✅ COLE AQUI A URL DO SEU WEB APP (Apps Script)
+      const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzlSDAshFhVL0HJ1y1VTEdJVENb7QO5LSXEaCahyEsSIijVtjRVhL5RDAjCBz1uEpmn1g/exec";
+
+      const qs = new URLSearchParams(window.location.search);
+      const src = qs.get("src") || "SITE";
+      const ts = Date.now().toString();
+
+      if (!WEBAPP_URL || WEBAPP_URL.includes("COLE_AQUI")) {
+        document.body.innerHTML = `
+          <h2>Falta configurar o Web App</h2>
+          <p>Edite o arquivo <b>w/index.html</b> e cole a URL do Apps Script em <code>WEBAPP_URL</code>.</p>
+        `;
+      } else {
+        // Envia para o Apps Script registrar o clique e redirecionar para o WhatsApp
+        const glue = WEBAPP_URL.includes("?") ? "&" : "?";
+        const url = `${WEBAPP_URL}${glue}src=${encodeURIComponent(src)}&ts=${encodeURIComponent(ts)}`;
+
+        window.location.replace(url);
+      }
+    </script>
+  </body>
 </html>
