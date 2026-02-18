@@ -3,24 +3,33 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Abrindo WhatsApp…</title>
+    <title>Lista VIP • Abrir WhatsApp</title>
   </head>
-  <body style="font-family: Arial, sans-serif; padding: 24px;">
-    <h2>Abrindo WhatsApp…</h2>
-    <p>Se não abrir automaticamente, clique no botão abaixo.</p>
+  <body style="font-family: Arial, sans-serif; padding: 24px; max-width: 720px;">
+    <h2>Quase lá ✅</h2>
+    <p>Para continuar, clique em um dos botões abaixo para abrir o WhatsApp.</p>
 
     <p>
-      <a id="btnWa" href="#" style="
+      <a id="btnWa1" href="#" style="
         display:inline-block; padding:14px 18px; border-radius:10px;
-        background:#25D366; color:#fff; text-decoration:none; font-weight:700;
-      ">Abrir WhatsApp agora</a>
+        background:#25D366; color:#fff; text-decoration:none; font-weight:700; margin-right:10px;
+      ">Abrir WhatsApp (wa.me)</a>
+
+      <a id="btnWa2" href="#" style="
+        display:inline-block; padding:14px 18px; border-radius:10px;
+        background:#128C7E; color:#fff; text-decoration:none; font-weight:700;
+      ">Abrir WhatsApp (api.whatsapp.com)</a>
     </p>
 
-    <p style="color:#666; font-size: 13px;">
-      (Esse botão aparece porque alguns navegadores bloqueiam redirecionamento automático.)
+    <p style="margin-top:18px; color:#666;">
+      Se nenhum botão funcionar, copie e cole este link no navegador:
+    </p>
+    <p style="word-break: break-all; background:#f6f6f6; padding:12px; border-radius:8px;">
+      <span id="waLink"></span>
     </p>
 
     <script>
+      // Web App (Apps Script) - registra clique
       const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzlSDAshFhVL0HJ1y1VTEdJVENb7QO5LSXEaCahyEsSIijVtjRVhL5RDAjCBz1uEpmn1g/exec";
       const PHONE = "5511996900033";
 
@@ -28,12 +37,20 @@
       const src = qs.get("src") || "SITE";
 
       const text = `Olá! Vim pela Lista VIP (SRC: ${src}). Quero opções de lançamento/em obras/pronto em São Paulo.`;
-      const waUrl = `https://wa.me/${PHONE}?text=${encodeURIComponent(text)}`;
 
-      // coloca o link no botão (fallback manual)
-      document.getElementById("btnWa").href = waUrl;
+      const wa1 = `https://wa.me/${PHONE}?text=${encodeURIComponent(text)}`;
+      const wa2 = `https://api.whatsapp.com/send?phone=${PHONE}&text=${encodeURIComponent(text)}`;
 
-      // 1) registra clique no Apps Script (em paralelo)
+      // Setar links nos botões
+      const btn1 = document.getElementById("btnWa1");
+      const btn2 = document.getElementById("btnWa2");
+      btn1.href = wa1;
+      btn2.href = wa2;
+
+      // Mostrar link para copiar
+      document.getElementById("waLink").textContent = wa1;
+
+      // Registrar clique (sem depender de CORS)
       const payload = {
         type: "wa_click",
         payload: {
@@ -57,10 +74,9 @@
         }
       } catch (e) {}
 
-      // 2) tenta abrir automaticamente (mesma aba) – com pequeno delay
-      setTimeout(() => {
-        window.location.assign(waUrl);
-      }, 150);
+      // Forçar navegação por clique (mais compatível com Edge)
+      btn1.addEventListener("click", (ev) => { ev.preventDefault(); window.location.href = wa1; });
+      btn2.addEventListener("click", (ev) => { ev.preventDefault(); window.location.href = wa2; });
     </script>
   </body>
 </html>
