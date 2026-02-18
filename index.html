@@ -13,14 +13,18 @@
       <nav>
         <div class="logo">VIP Autopiloto · Bahuan Imóveis</div>
         <div>
-          <a href="/">Home</a>
-          <a href="/vip/">Lista VIP</a>
+          <!-- GitHub Pages: precisa do prefixo do projeto -->
+          <a href="/vip-autopiloto-bahuan/">Home</a>
+          <a href="/vip-autopiloto-bahuan/vip/">Lista VIP</a>
         </div>
       </nav>
+
       <div class="hero">
         <h1>Receba imóveis de alto potencial em São Paulo antes da maioria.</h1>
         <p>Selecionamos oportunidades de <strong>lançamento</strong>, <strong>em obras</strong> e <strong>pronto para morar</strong> nos bairros com maior procura da zona sul e oeste.</p>
-        <a class="btn" href="/vip/?src=home-hero">Entrar na Lista VIP</a>
+
+        <!-- CTA principal: passa pelo /w/ (registra clique e abre WhatsApp) -->
+        <a class="btn" href="/vip-autopiloto-bahuan/w/?src=HOME-HERO">Falar no WhatsApp e entrar na Lista VIP</a>
       </div>
     </div>
   </header>
@@ -46,7 +50,9 @@
     <div class="container cta-strip">
       <h2 style="margin-top:0;">Quer receber as próximas oportunidades sem perder tempo?</h2>
       <p>Cadastre-se e deixe que o funil trabalhe por você, com captação contínua de interessados qualificados.</p>
-      <a class="btn" href="/vip/?src=home-strip">Entrar na Lista VIP</a>
+
+      <!-- CTA secundário -->
+      <a class="btn" href="/vip-autopiloto-bahuan/w/?src=HOME-STRIP">Falar no WhatsApp e entrar na Lista VIP</a>
     </div>
   </section>
 
@@ -54,22 +60,35 @@
     <div class="container">
       <h2>Guias locais para decisão rápida</h2>
       <div class="card-grid">
-        <a class="card" href="/seo/morumbi-lancamentos.html">Lançamentos no Morumbi</a>
-        <a class="card" href="/seo/santo-amaro-pronto-morar.html">Pronto para morar em Santo Amaro</a>
-        <a class="card" href="/seo/butanta-em-obras.html">Em obras no Butantã</a>
-        <a class="card" href="/seo/vila-sonia-metro.html">Vila Sônia perto do metrô</a>
-        <a class="card" href="/seo/vila-andrade-perfil-familiar.html">Vila Andrade para famílias</a>
-        <a class="card" href="/seo/entrada-200-mil-sp.html">Entrada até R$ 200 mil em SP</a>
-        <a class="card" href="/seo/entrada-400-mil-sp.html">Entrada até R$ 400 mil em SP</a>
-        <a class="card" href="/seo/comprar-em-6-meses.html">Comprar em até 6 meses</a>
-        <a class="card" href="/seo/comprar-em-12-meses.html">Comprar em 12 meses</a>
-        <a class="card" href="/seo/comparativo-bairros-zona-sul-oeste.html">Comparativo de bairros</a>
+
+        <!-- Links SEO passam pelo /w/ com SRC + page (rastreia qual guia gerou o clique) -->
+        <a class="card" href="/vip-autopiloto-bahuan/w/?src=SEO-MORUMBI&page=/vip-autopiloto-bahuan/seo/morumbi-lancamentos.html">Lançamentos no Morumbi</a>
+        <a class="card" href="/vip-autopiloto-bahuan/w/?src=SEO-SANTO-AMARO&page=/vip-autopiloto-bahuan/seo/santo-amaro-pronto-morar.html">Pronto para morar em Santo Amaro</a>
+        <a class="card" href="/vip-autopiloto-bahuan/w/?src=SEO-BUTANTA&page=/vip-autopiloto-bahuan/seo/butanta-em-obras.html">Em obras no Butantã</a>
+        <a class="card" href="/vip-autopiloto-bahuan/w/?src=SEO-VILA-SONIA&page=/vip-autopiloto-bahuan/seo/vila-sonia-metro.html">Vila Sônia perto do metrô</a>
+        <a class="card" href="/vip-autopiloto-bahuan/w/?src=SEO-VILA-ANDRADE&page=/vip-autopiloto-bahuan/seo/vila-andrade-perfil-familiar.html">Vila Andrade para famílias</a>
+
+        <a class="card" href="/vip-autopiloto-bahuan/w/?src=SEO-ENTRADA-200&page=/vip-autopiloto-bahuan/seo/entrada-200-mil-sp.html">Entrada até R$ 200 mil em SP</a>
+        <a class="card" href="/vip-autopiloto-bahuan/w/?src=SEO-ENTRADA-400&page=/vip-autopiloto-bahuan/seo/entrada-400-mil-sp.html">Entrada até R$ 400 mil em SP</a>
+
+        <a class="card" href="/vip-autopiloto-bahuan/w/?src=SEO-COMPRAR-6M&page=/vip-autopiloto-bahuan/seo/comprar-em-6-meses.html">Comprar em até 6 meses</a>
+        <a class="card" href="/vip-autopiloto-bahuan/w/?src=SEO-COMPRAR-12M&page=/vip-autopiloto-bahuan/seo/comprar-em-12-meses.html">Comprar em 12 meses</a>
+
+        <a class="card" href="/vip-autopiloto-bahuan/w/?src=SEO-COMPARATIVO&page=/vip-autopiloto-bahuan/seo/comparativo-bairros-zona-sul-oeste.html">Comparativo de bairros</a>
+      </div>
+
+      <!-- CTA no final da seção SEO -->
+      <div style="margin-top:18px;">
+        <a class="btn" href="/vip-autopiloto-bahuan/w/?src=HOME-SEO-CTA">Quero atendimento no WhatsApp</a>
       </div>
     </div>
   </section>
 
   <footer>
-    <div class="container">Bahuan Imóveis · São Paulo · WhatsApp: <a href="https://wa.me/5511996900033">(11) 99690-0033</a></div>
+    <div class="container">
+      Bahuan Imóveis · São Paulo · WhatsApp:
+      <a href="/vip-autopiloto-bahuan/w/?src=FOOTER-WA">(11) 99690-0033</a>
+    </div>
   </footer>
 </body>
 </html>
