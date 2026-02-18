@@ -6,10 +6,8 @@
   <title>Entrar na Lista VIP | Bahuan Imóveis</title>
   <meta name="description" content="Cadastre-se na Lista VIP da Bahuan Imóveis e receba oportunidades em lançamento, em obras e pronto para morar em São Paulo." />
 
-  <!-- CSS com caminho seguro no GitHub Pages -->
   <link rel="stylesheet" href="/vip-autopiloto-bahuan/assets/css/styles.css" />
 </head>
-
 <body>
   <header>
     <div class="container">
@@ -23,21 +21,22 @@
 
       <div class="hero">
         <h1>Entre na Lista VIP</h1>
-        <p>Preencha em 30 segundos. A gente filtra e te manda oportunidades com base no seu momento.</p>
+        <p>Preencha em 30 segundos. A gente filtra e te envia oportunidades com base no seu momento.</p>
       </div>
     </div>
   </header>
 
   <section>
     <div class="container">
-
       <div class="card" style="padding:16px;">
         <h2 style="margin-top:0;">Seu perfil</h2>
 
-        <!-- IFRAME oculto: permite POST para Apps Script sem problema de CORS -->
+        <!-- IFRAME oculto: garante envio POST pro Apps Script sem CORS -->
         <iframe name="hidden_iframe" style="display:none;"></iframe>
 
-        <form id="vipForm" method="POST" target="hidden_iframe"
+        <form id="vipForm"
+              method="POST"
+              target="hidden_iframe"
               action="https://script.google.com/macros/s/AKfycbzlSDAshFhVL0HJ1y1VTEdJVENb7QO5LSXEaCahyEsSIijVtjRVhL5RDAjCBz1uEpmn1g/exec">
 
           <!-- Diz ao Apps Script que é LEAD -->
@@ -47,12 +46,14 @@
           <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
             <div>
               <label><strong>Nome</strong></label><br/>
-              <input name="nome" required placeholder="Seu nome" style="width:100%; padding:10px; margin-top:6px;" />
+              <input name="nome" required placeholder="Seu nome"
+                     style="width:100%; padding:10px; margin-top:6px;" />
             </div>
 
             <div>
               <label><strong>WhatsApp</strong></label><br/>
-              <input name="whatsapp" required placeholder="(11) 99999-9999" style="width:100%; padding:10px; margin-top:6px;" />
+              <input name="whatsapp" required placeholder="(11) 99999-9999"
+                     style="width:100%; padding:10px; margin-top:6px;" />
             </div>
 
             <div>
@@ -106,40 +107,39 @@
           </div>
 
           <p class="muted" style="margin-top:10px;">
-            Ao enviar, você será direcionado para falar conosco no WhatsApp.
+            Ao enviar, vamos salvar seu cadastro e você poderá abrir o WhatsApp em seguida.
           </p>
         </form>
 
+        <!-- Mensagem pós-envio -->
         <div id="okBox" style="display:none; margin-top:14px; padding:12px; background:#f6f6f6; border-radius:10px;">
-          <strong>Cadastro recebido ✅</strong>
+          <strong>Cadastro enviado ✅</strong>
           <p style="margin:8px 0 12px 0;">Agora clique abaixo para abrir o WhatsApp.</p>
           <a class="btn" id="goWa" href="#">Abrir WhatsApp</a>
         </div>
-      </div>
 
+      </div>
     </div>
   </section>
 
   <script>
-    // Depois de enviar o formulário, mostramos um botão para o /w/ (que registra clique e abre WhatsApp)
     const form = document.getElementById("vipForm");
     const srcField = document.getElementById("srcField");
     const okBox = document.getElementById("okBox");
     const goWa = document.getElementById("goWa");
     const btnSubmit = document.getElementById("btnSubmit");
 
+    // SRC vem da URL: /vip/?src=SEO-MORUMBI (por exemplo)
     const qs = new URLSearchParams(window.location.search);
     const src = qs.get("src") || "VIP";
-
     srcField.value = src;
 
     form.addEventListener("submit", () => {
       btnSubmit.disabled = true;
       btnSubmit.textContent = "Enviando…";
 
-      // Mostra botão para ir ao /w/ (WhatsApp + registro)
-      const page = "/vip-autopiloto-bahuan/vip/";
-      goWa.href = `/vip-autopiloto-bahuan/w/?src=${encodeURIComponent("VIP-FORM-" + src)}&page=${encodeURIComponent(page)}`;
+      // Depois do envio, manda pro /w/ (clique rastreável + WhatsApp)
+      goWa.href = `/vip-autopiloto-bahuan/w/?src=${encodeURIComponent("VIP-LEAD-" + src)}&page=${encodeURIComponent("/vip-autopiloto-bahuan/vip/")}`;
 
       okBox.style.display = "block";
       btnSubmit.textContent = "Enviado ✅";
