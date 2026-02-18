@@ -3,54 +3,64 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Redirecionando para o WhatsApp…</title>
+    <title>Abrindo WhatsApp…</title>
   </head>
   <body style="font-family: Arial, sans-serif; padding: 24px;">
-    <h2>Redirecionando para o WhatsApp…</h2>
-    <p>Se não redirecionar em 2 segundos, verifique se o bloqueio de pop-up está ativado.</p>
+    <h2>Abrindo WhatsApp…</h2>
+    <p>Se não abrir automaticamente, clique no botão abaixo.</p>
+
+    <p>
+      <a id="btnWa" href="#" style="
+        display:inline-block; padding:14px 18px; border-radius:10px;
+        background:#25D366; color:#fff; text-decoration:none; font-weight:700;
+      ">Abrir WhatsApp agora</a>
+    </p>
+
+    <p style="color:#666; font-size: 13px;">
+      (Esse botão aparece porque alguns navegadores bloqueiam redirecionamento automático.)
+    </p>
 
     <script>
-  // URL do seu Web App (Apps Script)
-  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzlSDAshFhVL0HJ1y1VTEdJVENb7QO5LSXEaCahyEsSIijVtjRVhL5RDAjCBz1uEpmn1g/exec";
+      const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzlSDAshFhVL0HJ1y1VTEdJVENb7QO5LSXEaCahyEsSIijVtjRVhL5RDAjCBz1uEpmn1g/exec";
+      const PHONE = "5511996900033";
 
-  // Seu WhatsApp (sem + e sem espaços)
-  const PHONE = "5511996900033";
+      const qs = new URLSearchParams(window.location.search);
+      const src = qs.get("src") || "SITE";
 
-  const qs = new URLSearchParams(window.location.search);
-  const src = qs.get("src") || "SITE";
-  const ts = Date.now();
+      const text = `Olá! Vim pela Lista VIP (SRC: ${src}). Quero opções de lançamento/em obras/pronto em São Paulo.`;
+      const waUrl = `https://wa.me/${PHONE}?text=${encodeURIComponent(text)}`;
 
-  // 1) registra clique no Apps Script (sem travar o redirect)
-  const payload = {
-    type: "wa_click",
-    payload: {
-      src,
-      ts,
-      ua: navigator.userAgent,
-      page: window.location.href
-    }
-  };
+      // coloca o link no botão (fallback manual)
+      document.getElementById("btnWa").href = waUrl;
 
-  try {
-    if (navigator.sendBeacon) {
-      const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
-      navigator.sendBeacon(WEBAPP_URL, blob);
-    } else {
-      // fallback: tenta POST normal (não bloqueia)
-      fetch(WEBAPP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        mode: "no-cors"
-      }).catch(() => {});
-    }
-  } catch (e) {}
+      // 1) registra clique no Apps Script (em paralelo)
+      const payload = {
+        type: "wa_click",
+        payload: {
+          src,
+          page: window.location.href,
+          ua: navigator.userAgent
+        }
+      };
 
-  // 2) abre WhatsApp (top-level)
-  const text = `Olá! Vim pela Lista VIP (SRC: ${src}). Quero opções de lançamento/em obras/pronto em São Paulo.`;
-  const waUrl = `https://wa.me/${PHONE}?text=${encodeURIComponent(text)}`;
-  window.location.replace(waUrl);
-</script>
+      try {
+        if (navigator.sendBeacon) {
+          const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+          navigator.sendBeacon(WEBAPP_URL, blob);
+        } else {
+          fetch(WEBAPP_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            mode: "no-cors"
+          }).catch(() => {});
+        }
+      } catch (e) {}
 
+      // 2) tenta abrir automaticamente (mesma aba) – com pequeno delay
+      setTimeout(() => {
+        window.location.assign(waUrl);
+      }, 150);
+    </script>
   </body>
 </html>
