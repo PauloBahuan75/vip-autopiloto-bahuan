@@ -4,67 +4,153 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Entrar na Lista VIP | Bahuan Imóveis</title>
-  <meta name="description" content="Formulário da Lista VIP Bahuan Imóveis para oportunidades em São Paulo." />
+  <meta name="description" content="Cadastre-se na Lista VIP da Bahuan Imóveis e receba oportunidades em lançamento, em obras e pronto para morar em São Paulo." />
+
+  <!-- CSS com caminho seguro no GitHub Pages -->
   <link rel="stylesheet" href="/vip-autopiloto-bahuan/assets/css/styles.css" />
 </head>
+
 <body>
+  <header>
+    <div class="container">
+      <nav>
+        <div class="logo">VIP Autopiloto · Bahuan Imóveis</div>
+        <div>
+          <a href="/vip-autopiloto-bahuan/">Home</a>
+          <a href="/vip-autopiloto-bahuan/vip/">Lista VIP</a>
+        </div>
+      </nav>
+
+      <div class="hero">
+        <h1>Entre na Lista VIP</h1>
+        <p>Preencha em 30 segundos. A gente filtra e te manda oportunidades com base no seu momento.</p>
+      </div>
+    </div>
+  </header>
+
   <section>
     <div class="container">
-      <h1>Entrar na Lista VIP</h1>
-      <p class="muted">Preencha em menos de 1 minuto para receber imóveis aderentes ao seu perfil no WhatsApp.</p>
 
-      <form id="vipForm">
-        <label for="nome">Nome</label>
-        <input id="nome" name="nome" required />
+      <div class="card" style="padding:16px;">
+        <h2 style="margin-top:0;">Seu perfil</h2>
 
-        <label for="whatsapp">WhatsApp</label>
-        <input id="whatsapp" name="whatsapp" required placeholder="11999998888" />
+        <!-- IFRAME oculto: permite POST para Apps Script sem problema de CORS -->
+        <iframe name="hidden_iframe" style="display:none;"></iframe>
 
-        <label for="bairro">Bairro de interesse</label>
-        <select id="bairro" name="bairro" required>
-          <option value="">Selecione</option>
-          <option>Morumbi</option>
-          <option>Santo Amaro</option>
-          <option>Butantã</option>
-          <option>Vila Sônia</option>
-          <option>Vila Andrade</option>
-        </select>
+        <form id="vipForm" method="POST" target="hidden_iframe"
+              action="https://script.google.com/macros/s/AKfycbzlSDAshFhVL0HJ1y1VTEdJVENb7QO5LSXEaCahyEsSIijVtjRVhL5RDAjCBz1uEpmn1g/exec">
 
-        <label for="tipo">Tipo de imóvel</label>
-        <select id="tipo" name="tipo" required>
-          <option value="">Selecione</option>
-          <option value="lançamento">Lançamento</option>
-          <option value="obra">Em obras</option>
-          <option value="pronto">Pronto para morar</option>
-        </select>
+          <!-- Diz ao Apps Script que é LEAD -->
+          <input type="hidden" name="type" value="lead" />
+          <input type="hidden" name="src" id="srcField" value="VIP" />
 
-        <label for="entrada">Faixa de entrada</label>
-        <select id="entrada" name="entrada" required>
-          <option value="">Selecione</option>
-          <option>até R$ 100 mil</option>
-          <option>R$ 100 mil a R$ 200 mil</option>
-          <option>R$ 200 mil a R$ 400 mil</option>
-          <option>acima de R$ 400 mil</option>
-        </select>
+          <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
+            <div>
+              <label><strong>Nome</strong></label><br/>
+              <input name="nome" required placeholder="Seu nome" style="width:100%; padding:10px; margin-top:6px;" />
+            </div>
 
-        <label for="prazo">Prazo para compra</label>
-        <select id="prazo" name="prazo" required>
-          <option value="">Selecione</option>
-          <option>imediato</option>
-          <option>até 3 meses</option>
-          <option>até 6 meses</option>
-          <option>até 12 meses</option>
-          <option>acima de 12 meses</option>
-        </select>
+            <div>
+              <label><strong>WhatsApp</strong></label><br/>
+              <input name="whatsapp" required placeholder="(11) 99999-9999" style="width:100%; padding:10px; margin-top:6px;" />
+            </div>
 
-        <button class="btn" type="submit" style="margin-top:16px;">Continuar para WhatsApp</button>
-        <div id="status" class="notice" aria-live="polite">Ao enviar, você será redirecionado para o WhatsApp com mensagem pronta.</div>
-        <small>Ao enviar, você concorda em receber contato consultivo da equipe Bahuan Imóveis.</small>
-      </form>
+            <div>
+              <label><strong>Bairro de preferência</strong></label><br/>
+              <select name="bairro" required style="width:100%; padding:10px; margin-top:6px;">
+                <option value="">Selecione</option>
+                <option>Morumbi</option>
+                <option>Santo Amaro</option>
+                <option>Butantã</option>
+                <option>Vila Sônia</option>
+                <option>Vila Andrade</option>
+              </select>
+            </div>
+
+            <div>
+              <label><strong>Tipo de imóvel</strong></label><br/>
+              <select name="tipo" required style="width:100%; padding:10px; margin-top:6px;">
+                <option value="">Selecione</option>
+                <option>Lançamento</option>
+                <option>Em obras</option>
+                <option>Pronto para morar</option>
+              </select>
+            </div>
+
+            <div>
+              <label><strong>Valor de entrada</strong></label><br/>
+              <select name="entrada" required style="width:100%; padding:10px; margin-top:6px;">
+                <option value="">Selecione</option>
+                <option>Até R$ 100 mil</option>
+                <option>R$ 100 mil a R$ 200 mil</option>
+                <option>R$ 200 mil a R$ 400 mil</option>
+                <option>Acima de R$ 400 mil</option>
+              </select>
+            </div>
+
+            <div>
+              <label><strong>Prazo para comprar</strong></label><br/>
+              <select name="prazo" required style="width:100%; padding:10px; margin-top:6px;">
+                <option value="">Selecione</option>
+                <option>Imediato</option>
+                <option>Até 3 meses</option>
+                <option>Até 6 meses</option>
+                <option>Até 12 meses</option>
+                <option>Acima de 12 meses</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top:14px;">
+            <button id="btnSubmit" class="btn" type="submit">Entrar na Lista VIP</button>
+          </div>
+
+          <p class="muted" style="margin-top:10px;">
+            Ao enviar, você será direcionado para falar conosco no WhatsApp.
+          </p>
+        </form>
+
+        <div id="okBox" style="display:none; margin-top:14px; padding:12px; background:#f6f6f6; border-radius:10px;">
+          <strong>Cadastro recebido ✅</strong>
+          <p style="margin:8px 0 12px 0;">Agora clique abaixo para abrir o WhatsApp.</p>
+          <a class="btn" id="goWa" href="#">Abrir WhatsApp</a>
+        </div>
+      </div>
+
     </div>
   </section>
 
-  <script src="/assets/js/config.js"></script>
-  <script src="/assets/js/vip-form.js"></script>
+  <script>
+    // Depois de enviar o formulário, mostramos um botão para o /w/ (que registra clique e abre WhatsApp)
+    const form = document.getElementById("vipForm");
+    const srcField = document.getElementById("srcField");
+    const okBox = document.getElementById("okBox");
+    const goWa = document.getElementById("goWa");
+    const btnSubmit = document.getElementById("btnSubmit");
+
+    const qs = new URLSearchParams(window.location.search);
+    const src = qs.get("src") || "VIP";
+
+    srcField.value = src;
+
+    form.addEventListener("submit", () => {
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = "Enviando…";
+
+      // Mostra botão para ir ao /w/ (WhatsApp + registro)
+      const page = "/vip-autopiloto-bahuan/vip/";
+      goWa.href = `/vip-autopiloto-bahuan/w/?src=${encodeURIComponent("VIP-FORM-" + src)}&page=${encodeURIComponent(page)}`;
+
+      okBox.style.display = "block";
+      btnSubmit.textContent = "Enviado ✅";
+    });
+  </script>
+
+  <footer>
+    <div class="container">
+      Bahuan Imóveis · São Paulo · WhatsApp:
+      <a href="/vip-autopiloto-bahuan/w/?src=VIP-FOOTER">(11) 99690-0033</a>
+    </div>
+  </footer>
 </body>
 </html>
