@@ -163,4 +163,33 @@
     </div>
   </footer>
 </body>
+
+<script>
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzlSDAshFhVL0HJ1y1VTEdJVENb7QO5LSXEaCahyEsSIijVtjRVhL5RDAjCBz1uEpmn1g/exec";
+  const qs = new URLSearchParams(window.location.search);
+  const src = qs.get("src") || "SITE";
+
+  const payload = {
+    type: "pageview",
+    payload: {
+      src,
+      page: window.location.pathname + window.location.search,
+      ua: navigator.userAgent
+    }
+  };
+
+  try {
+    if (navigator.sendBeacon) {
+      const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+      navigator.sendBeacon(WEBAPP_URL, blob);
+    } else {
+      fetch(WEBAPP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        mode: "no-cors"
+      }).catch(()=>{});
+    }
+  } catch (e) {}
+</script>
 </html>
