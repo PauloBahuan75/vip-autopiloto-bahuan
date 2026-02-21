@@ -210,10 +210,12 @@
     const btnWaTop = document.getElementById("btnWaTop");
     const btnWaMid = document.getElementById("btnWaMid");
     const btnWaAfter = document.getElementById("btnWaAfter");
+    const btnWaBig = document.getElementById("btnWaBig");
 
     btnWaTop.href = buildWUrl("VIPTOP");
     btnWaMid.href = buildWUrl("VIPMID");
     btnWaAfter.href = buildWUrl("VIPAFTER");
+    if (btnWaBig) btnWaBig.href = buildWUrl("VIPBIG");
 
     // === VISITS (pageview) -> Aba VISITS ===
     (function sendPageview(){
