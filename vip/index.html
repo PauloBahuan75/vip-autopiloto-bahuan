@@ -42,6 +42,27 @@
     .okbox{display:none;margin-top:16px}
     .okbox.show{display:block}
     .warn{background:#fff7e6;border:1px solid #ffe2a8;padding:12px;border-radius:12px}
+    /* ===== Correção de contraste (forçar legibilidade) ===== */
+.pill{
+  background:#ffffff !important;
+  color:#111111 !important;
+  border:1px solid rgba(0,0,0,.12) !important;
+}
+
+.warn{
+  background:#fff3cd !important;
+  border:1px solid #ffd28a !important;
+  color:#111111 !important;
+}
+
+/* garante que qualquer texto dentro do aviso não herde branco do hero */
+.warn *{
+  color:#111111 !important;
+}
+
+.warn .muted{
+  color:#333333 !important;
+}
   </style>
 </head>
 
