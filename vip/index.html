@@ -263,59 +263,108 @@
         }
       } catch(e) {}
     })();
+<script>
+  // === CONFIG ===
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzlSDAshFhVL0HJ1y1VTEdJVENb7QO5LSXEaCahyEsSIijVtjRVhL5RDAjCBz1uEpmn1g/exec";
+  const BASE_W_PATH = "../w/";
 
-    // === LEAD submit -> Aba Leads ===
-    const form = document.getElementById("vipForm");
-    const okbox = document.getElementById("okbox");
-    const btnSubmit = document.getElementById("btnSubmit");
+  // === SRC / PAGE ===
+  const qs = new URLSearchParams(window.location.search);
+  const srcBase = qs.get("src") || "SITE";
+  const pagePath = window.location.pathname + window.location.search;
 
-    function digitsOnly(v){ return String(v||"").replace(/\D/g,""); }
+  document.getElementById("src").value = srcBase;
+  document.getElementById("page").value = pagePath;
 
-    form.addEventListener("submit", (ev) => {
-      ev.preventDefault();
+  // === Links WhatsApp (usando /w/ para registrar clique) ===
+  function buildWUrl(extraTag) {
+    const src = encodeURIComponent(srcBase + (extraTag ? ("-" + extraTag) : ""));
+    const page = encodeURIComponent(pagePath);
+    return `${BASE_W_PATH}?src=${src}&page=${page}`;
+  }
 
-      btnSubmit.disabled = true;
-      btnSubmit.textContent = "Enviando…";
+  const btnWaTop = document.getElementById("btnWaTop");
+  const btnWaMid = document.getElementById("btnWaMid");
+  const btnWaAfter = document.getElementById("btnWaAfter");
+  const btnWaBig = document.getElementById("btnWaBig");
 
-      const lead = {
-        nome: document.getElementById("nome").value.trim(),
-        whatsapp: document.getElementById("whatsapp").value.trim(),
-        bairro: document.getElementById("bairro").value.trim(),
-        tipo: document.getElementById("tipo").value.trim(),
-        entrada: document.getElementById("entrada").value.trim(),
-        prazo: document.getElementById("prazo").value.trim(),
-        src: srcBase
-      };
+  if (btnWaTop) btnWaTop.href = buildWUrl("VIPTOP");
+  if (btnWaMid) btnWaMid.href = buildWUrl("VIPMID");
+  if (btnWaAfter) btnWaAfter.href = buildWUrl("VIPAFTER");
+  if (btnWaBig) btnWaBig.href = buildWUrl("VIPBIG");
 
-      // normaliza whatsapp (mantém o que o usuário digitou, mas se quiser pode salvar só dígitos)
-      // lead.whatsapp = digitsOnly(lead.whatsapp);
+  // === VISITS (pageview) -> Aba VISITS ===
+  (function sendPageview(){
+    const payload = {
+      type: "pageview",
+      payload: { src: srcBase, page: pagePath, ua: navigator.userAgent }
+    };
+    try {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=UTF-8" });
+        navigator.sendBeacon(WEBAPP_URL, blob);
+      } else {
+        fetch(WEBAPP_URL, {
+          method: "POST",
+          body: JSON.stringify(payload),
+          keepalive: true,
+          mode: "no-cors"
+        }).catch(()=>{});
+      }
+    } catch(e) {}
+  })();
 
-      const payload = { type: "lead", payload: lead };
+  // === LEAD submit -> Aba Leads (robusto no Edge) ===
+  const form = document.getElementById("vipForm");
+  const okbox = document.getElementById("okbox");
+  const btnSubmit = document.getElementById("btnSubmit");
 
-      try {
-        if (navigator.sendBeacon) {
-          const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
-          navigator.sendBeacon(WEBAPP_URL, blob);
-        } else {
-          fetch(WEBAPP_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-            mode: "no-cors"
-          }).catch(()=>{});
-        }
-      } catch(e) {}
+  form.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
 
-      // mostra confirmação (não depende do retorno)
-      okbox.classList.add("show");
-      okbox.scrollIntoView({ behavior: "smooth", block: "start" });
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = "Enviando…";
 
-      btnSubmit.textContent = "Enviado ✅";
-      setTimeout(() => {
-        btnSubmit.disabled = false;
-        btnSubmit.textContent = "Entrar na Lista VIP";
-      }, 1500);
-    });
+    // ✅ Envia o LEAD "direto" (sem wrapper). O Code.gs infere automaticamente como lead.
+    const lead = {
+      nome: (document.getElementById("nome").value || "").trim(),
+      whatsapp: (document.getElementById("whatsapp").value || "").trim(),
+      bairro: document.getElementById("bairro").value || "",
+      tipo: document.getElementById("tipo").value || "",
+      entrada: document.getElementById("entrada").value || "",
+      prazo: document.getElementById("prazo").value || "",
+      src: srcBase,
+      page: pagePath,
+      ua: navigator.userAgent,
+      id: "L" + Date.now() + "-" + Math.random().toString(16).slice(2)
+    };
+
+    try {
+      // 1) Beacon (mais confiável)
+      if (navigator.sendBeacon) {
+        const blob = new Blob([JSON.stringify(lead)], { type: "text/plain;charset=UTF-8" });
+        navigator.sendBeacon(WEBAPP_URL, blob);
+      }
+
+      // 2) Fetch keepalive (fallback)
+      fetch(WEBAPP_URL, {
+        method: "POST",
+        body: JSON.stringify(lead),
+        keepalive: true,
+        mode: "no-cors"
+      }).catch(()=>{});
+    } catch(e) {}
+
+    // UI: confirma sem depender de retorno
+    okbox.classList.add("show");
+    okbox.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    btnSubmit.textContent = "Enviado ✅";
+    setTimeout(() => {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = "Entrar na Lista VIP";
+    }, 1200);
+  });
   </script>
 </body>
 </html>
