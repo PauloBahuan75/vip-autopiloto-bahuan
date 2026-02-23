@@ -1,408 +1,325 @@
-/***********************
- * VIP AUTOPILOTO - Bahuan Imóveis
- * Code.gs COMPLETO (corrigido)
- *
- * Endpoints:
- * - doPost: recebe JSON {type:"lead|wa_click|pageview", payload:{...}}
- * - doGet : fallback GET para registrar clique e testar visits
- *
- * Abas:
- * - Leads   (captura lead + score/status)
- * - CLICKS  (cliques para WhatsApp)
- * - VISITS  (visitas na landing /vip)
- * - Config  (email relatório)
- ***********************/
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lista VIP Bahuan Imóveis | Lançamentos, Em Obras e Pronto em SP</title>
+  <meta name="description" content="Entre na Lista VIP da Bahuan Imóveis e receba oportunidades filtradas em Morumbi, Santo Amaro, Butantã, Vila Sônia e Vila Andrade." />
 
-const TZ = 'America/Sao_Paulo';
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FKWHL1D7R5"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-FKWHL1D7R5');
+  </script>
 
-const SHEET_LEADS  = 'Leads';
-const SHEET_CLICKS = 'CLICKS';
-const SHEET_VISITS = 'VISITS';
-const SHEET_CONFIG = 'Config';
+  <!-- CSS (no /vip, sobe 1 nível pra pegar /assets) -->
+  <link rel="stylesheet" href="../assets/css/styles.css" />
 
-const PROP_SPREADSHEET_ID = 'SPREADSHEET_ID';
+  <style>
+    .container{max-width:980px;margin:0 auto;padding:0 16px;}
+    .btn{display:inline-block;padding:12px 16px;border-radius:10px;text-decoration:none;font-weight:700}
+    .btn.primary{background:#111;color:#fff}
+    .btn.wa{background:#25D366;color:#fff}
+    .muted{color:#666}
+    .card{background:#fff;border:1px solid #eaeaea;border-radius:14px;padding:14px}
+    .grid{display:grid;gap:12px}
+    @media(min-width:760px){.grid{grid-template-columns:repeat(3,1fr)}}
+    input,select{width:100%;padding:12px;border-radius:10px;border:1px solid #ddd}
+    label{display:block;margin:10px 0 6px;font-weight:700}
+    .row{display:grid;gap:12px}
+    @media(min-width:760px){.row{grid-template-columns:1fr 1fr}}
+    .topbar{padding:16px 0;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:5}
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .logo{font-weight:900}
+    .hero{padding:22px 0}
+    .hero h1{margin:0 0 10px}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#f3f3f3;font-size:12px;margin-bottom:10px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .okbox{display:none;margin-top:16px}
+    .okbox.show{display:block}
+    .warn{background:#fff7e6;border:1px solid #ffe2a8;padding:12px;border-radius:12px}
 
-/** =======================
- *  1) UTILITÁRIOS BÁSICOS
- *  ======================= */
-function json_(obj) {
-  return ContentService
-    .createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
-}
+    /* Contraste garantido */
+    .pill{
+      background:#ffffff !important;
+      color:#111111 !important;
+      border:1px solid rgba(0,0,0,.12) !important;
+    }
+    .warn{
+      background:#fff3cd !important;
+      border:1px solid #ffd28a !important;
+      color:#111111 !important;
+    }
+    .warn *{ color:#111111 !important; }
+    .warn .muted{ color:#333333 !important; }
+  </style>
+</head>
 
-function parseBody_(e) {
-  try {
-    const raw = e && e.postData && e.postData.contents ? e.postData.contents : '';
-    if (!raw) return {};
-    return JSON.parse(raw);
-  } catch (err) {
-    return {};
-  }
-}
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="nav">
+        <div class="logo">VIP Autopiloto · Bahuan Imóveis</div>
+        <div class="actions">
+          <a class="btn primary" href="../">Home</a>
+          <a class="btn wa" id="btnWaTop" href="#">Falar no WhatsApp agora</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
-function getSpreadsheet_() {
-  const id = PropertiesService.getScriptProperties().getProperty(PROP_SPREADSHEET_ID);
-  if (id) return SpreadsheetApp.openById(id);
-  return SpreadsheetApp.getActiveSpreadsheet();
-}
+  <header>
+    <div class="container hero">
+      <span class="pill">Lista VIP • Oportunidades filtradas</span>
+      <h1>Receba opções de lançamento, em obras e pronto para morar — com filtro real pelo seu perfil.</h1>
+      <p class="muted">Você informa <strong>bairro</strong>, <strong>entrada</strong> e <strong>prazo</strong>. A gente prioriza somente o que faz sentido e te atende no WhatsApp com contexto.</p>
 
-function getOrCreateSheet_(ss, name, headers) {
-  let sh = ss.getSheetByName(name);
-  if (!sh) {
-    sh = ss.insertSheet(name);
-    sh.appendRow(headers);
-    sh.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-  } else if (sh.getLastRow() === 0) {
-    sh.appendRow(headers);
-    sh.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-  }
-  return sh;
-}
+      <div class="grid" style="margin-top:14px;">
+        <div class="card">
+          <strong>Filtro por momento</strong>
+          <div class="muted">Entrada e prazo definem prioridade.</div>
+        </div>
+        <div class="card">
+          <strong>Atendimento rápido</strong>
+          <div class="muted">WhatsApp com contexto já preenchido.</div>
+        </div>
+        <div class="card">
+          <strong>Bairros foco</strong>
+          <div class="muted">Morumbi, Santo Amaro, Butantã, Vila Sônia e Vila Andrade.</div>
+        </div>
+      </div>
 
-function setupSheets_(ss) {
-  getOrCreateSheet_(ss, SHEET_LEADS, [
-    'Timestamp','Nome','WhatsApp','Bairro','Tipo','Entrada','Prazo','SRC','Score','Status'
-  ]);
+      <div class="warn" style="margin-top:16px;">
+        <strong>Importante:</strong> Você pode entrar na lista agora e, se quiser, já clicar no WhatsApp. Se preferir, preencha o formulário (leva 30s) para receber opções mais certas.
+      </div>
+    </div>
+  </header>
 
-  getOrCreateSheet_(ss, SHEET_CLICKS, [
-    'Timestamp','SRC','Tipo','Bairro','Entrada','Prazo','Página','UA'
-  ]);
+  <main>
+    <div class="container" style="padding:18px 0 34px;">
+      <h2 style="margin:0 0 6px;">Entrar na Lista VIP</h2>
 
-  getOrCreateSheet_(ss, SHEET_VISITS, [
-    'Timestamp','SRC','Página','UA'
-  ]);
+      <div class="actions" style="margin:12px 0 10px;">
+        <a class="btn wa" id="btnWaBig" href="#" style="font-size:16px; padding:14px 18px;">
+          🔥 Falar no WhatsApp agora (mais rápido)
+        </a>
+      </div>
 
-  const cfg = getOrCreateSheet_(ss, SHEET_CONFIG, ['Chave','Valor']);
-  if (cfg.getLastRow() === 1) {
-    cfg.appendRow(['EMAIL_RELATORIO', Session.getActiveUser().getEmail() || 'seu-email@dominio.com']);
-  }
-}
+      <p class="muted" style="margin-top:0;">Preencha para receber oportunidades compatíveis com seu perfil.</p>
 
-/** =======================
- *  2) NORMALIZAÇÃO DADOS
- *  ======================= */
-function normStr_(v, maxLen) {
-  const s = String(v ?? '').trim();
-  if (!maxLen) return s;
-  return s.slice(0, maxLen);
-}
+      <form id="vipForm" class="card" style="margin-top:12px;">
+        <input type="hidden" id="src" name="src" value="SITE" />
+        <input type="hidden" id="page" name="page" value="" />
 
-function normalizeLead_(payload) {
-  const p = payload || {};
-  return {
-    nome: normStr_(p.nome || p.name, 120),
-    whatsapp: normStr_(p.whatsapp || p.phone || p.telefone, 40),
-    bairro: normStr_(p.bairro || p.neighborhood, 80),
-    tipo: normStr_(p.tipo || p.tipo_imovel || p.type, 40),
-    entrada: normStr_(p.entrada || p.downpayment, 60),
-    prazo: normStr_(p.prazo || p.timeline, 60),
-    src: normStr_(p.src || p.source || 'SITE', 80),
-  };
-}
+        <div class="row">
+          <div>
+            <label for="nome">Seu nome</label>
+            <input id="nome" name="nome" type="text" placeholder="Ex.: Paulo" required />
+          </div>
+          <div>
+            <label for="whatsapp">Seu WhatsApp</label>
+            <input id="whatsapp" name="whatsapp" type="tel" placeholder="(11) 99999-9999" required />
+            <div class="muted" style="font-size:12px;margin-top:6px;">Dica: coloque com DDD.</div>
+          </div>
+        </div>
 
-function normalizeClick_(payload) {
-  const p = payload || {};
-  return {
-    src: normStr_(p.src || p.source || 'SITE', 80),
-    tipo: normStr_(p.tipo || '', 40),
-    bairro: normStr_(p.bairro || '', 80),
-    entrada: normStr_(p.entrada || '', 60),
-    prazo: normStr_(p.prazo || '', 60),
-    page: normStr_(p.page || p.pagina || '', 300),
-    ua: normStr_(p.ua || '', 300),
-  };
-}
+        <div class="row">
+          <div>
+            <label for="bairro">Bairro de interesse</label>
+            <select id="bairro" name="bairro" required>
+              <option value="">Selecione…</option>
+              <option>Morumbi</option>
+              <option>Santo Amaro</option>
+              <option>Butantã</option>
+              <option>Vila Sônia</option>
+              <option>Vila Andrade</option>
+              <option>Outros (Zona Sul/Oeste)</option>
+            </select>
+          </div>
+          <div>
+            <label for="tipo">Tipo de oportunidade</label>
+            <select id="tipo" name="tipo" required>
+              <option value="">Selecione…</option>
+              <option>Lançamento</option>
+              <option>Em obras</option>
+              <option>Pronto para morar</option>
+              <option>Tanto faz</option>
+            </select>
+          </div>
+        </div>
 
-function normalizeVisit_(payload) {
-  const p = payload || {};
-  return {
-    src: normStr_(p.src || p.source || 'SITE', 80),
-    page: normStr_(p.page || p.pagina || '', 300),
-    ua: normStr_(p.ua || '', 300),
-  };
-}
+        <div class="row">
+          <div>
+            <label for="entrada">Valor aproximado de entrada</label>
+            <select id="entrada" name="entrada" required>
+              <option value="">Selecione…</option>
+              <option>Até R$ 100 mil</option>
+              <option>R$ 100 mil a R$ 200 mil</option>
+              <option>R$ 200 mil a R$ 400 mil</option>
+              <option>Acima de R$ 400 mil</option>
+            </select>
+          </div>
+          <div>
+            <label for="prazo">Prazo para comprar</label>
+            <select id="prazo" name="prazo" required>
+              <option value="">Selecione…</option>
+              <option>Imediato</option>
+              <option>Até 3 meses</option>
+              <option>Até 6 meses</option>
+              <option>Até 12 meses</option>
+              <option>Acima de 12 meses</option>
+            </select>
+          </div>
+        </div>
 
-/** =======================
- *  3) SCORE / CLASSIFICAÇÃO
- *  ======================= */
-function scoreLead_(lead) {
-  let score = 10;
+        <div class="actions" style="margin-top:14px;">
+          <button class="btn primary" type="submit" id="btnSubmit">Entrar na Lista VIP</button>
+          <a class="btn wa" id="btnWaMid" href="#">Preferir WhatsApp agora</a>
+        </div>
 
-  const prazoScore = {
-    'imediato': 35,
-    'até 3 meses': 30,
-    'ate 3 meses': 30,
-    'até 6 meses': 25,
-    'ate 6 meses': 25,
-    'até 12 meses': 15,
-    'ate 12 meses': 15,
-    'acima de 12 meses': 5
-  };
-  score += prazoScore[(lead.prazo || '').toLowerCase()] || 0;
+        <div class="muted" style="font-size:12px;margin-top:10px;">
+          Ao enviar, você concorda em receber contato da Bahuan Imóveis pelo WhatsApp sobre as oportunidades solicitadas.
+        </div>
 
-  const entrada = (lead.entrada || '').toLowerCase();
-  if (entrada.includes('acima de r$ 100')) score += 30;
-  else if (entrada.includes('50 mil') || entrada.includes('50.000')) score += 24;
-  else if (entrada.includes('20 mil') || entrada.includes('20.000')) score += 16;
-  else if (entrada.includes('até r$ 10') || entrada.includes('ate r$ 10')) score += 8;
+        <div id="okbox" class="okbox card" style="border-color:#c7f0d2;">
+          <strong>Cadastro enviado ✅</strong>
+          <div class="muted" style="margin-top:6px;">Para acelerar, clique abaixo e me diga seu perfil. (O WhatsApp abre com contexto.)</div>
+          <div class="actions" style="margin-top:10px;">
+            <a class="btn wa" id="btnWaAfter" href="#">Abrir WhatsApp agora</a>
+            <a class="btn primary" href="../">Voltar para Home</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
 
-  const tipo = (lead.tipo || '').toLowerCase();
-  if (tipo.includes('pronto')) score += 20;
-  else if (tipo.includes('obra')) score += 14;
-  else if (tipo.includes('lanç') || tipo.includes('lanc')) score += 10;
+  <footer>
+    <div class="container" style="padding:18px 0;border-top:1px solid #eee;">
+      Bahuan Imóveis · São Paulo · WhatsApp: <a href="https://wa.me/5511996900033">(11) 99690-0033</a>
+    </div>
+  </footer>
 
-  const bairro = (lead.bairro || '').toLowerCase();
-  if (['morumbi','santo amaro','butantã','butanta','vila sônia','vila sonia','vila andrade']
-    .some(b => bairro.includes(b))) {
-    score += 5;
-  }
+  <script>
+    // === CONFIG ===
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzlSDAshFhVL0HJ1y1VTEdJVENb7QO5LSXEaCahyEsSIijVtjRVhL5RDAjCBz1uEpmn1g/exec";
+    const BASE_W_PATH = "../w/";
 
-  return Math.max(0, Math.min(100, score));
-}
+    // === SRC / PAGE ===
+    const qs = new URLSearchParams(window.location.search);
+    const srcBase = qs.get("src") || "SITE";
+    const pagePath = window.location.pathname + window.location.search;
 
-function classify_(score) {
-  if (score >= 75) return 'QUENTE';
-  if (score >= 45) return 'MORNO';
-  return 'FRIO';
-}
+    document.getElementById("src").value = srcBase;
+    document.getElementById("page").value = pagePath;
 
-/** =======================
- *  4) WEB APP ENDPOINTS
- *  ======================= */
-function doPost(e) {
-  const ss = getSpreadsheet_();
-  setupSheets_(ss);
+    // === Links WhatsApp (passa por /w/ para registrar em CLICKS) ===
+    function buildWUrl(extraTag) {
+      const src = encodeURIComponent(srcBase + (extraTag ? ("-" + extraTag) : ""));
+      const page = encodeURIComponent(pagePath);
+      return `${BASE_W_PATH}?src=${src}&page=${page}`;
+    }
 
-  const body = parseBody_(e) || {};
-  const typeRaw = normStr_(body.type || '', 20).toLowerCase();
-  const payload = body.payload || body;
+    const btnWaTop   = document.getElementById("btnWaTop");
+    const btnWaBig   = document.getElementById("btnWaBig");
+    const btnWaMid   = document.getElementById("btnWaMid");
+    const btnWaAfter = document.getElementById("btnWaAfter");
 
-  // inferência quando não vem type
-  let type = typeRaw;
-  if (!type) {
-    if (payload && (payload.nome || payload.whatsapp)) type = 'lead';
-    else if (payload && (payload.page || payload.ua) && (payload.src || payload.source)) type = 'pageview';
-    else type = 'wa_click';
-  }
+    if (btnWaTop)   btnWaTop.href   = buildWUrl("VIPTOP");
+    if (btnWaBig)   btnWaBig.href   = buildWUrl("VIPBIG");
+    if (btnWaMid)   btnWaMid.href   = buildWUrl("VIPMID");
+    if (btnWaAfter) btnWaAfter.href = buildWUrl("VIPAFTER");
 
-  if (type === 'pageview') {
-    const v = normalizeVisit_(payload);
-    ss.getSheetByName(SHEET_VISITS).appendRow([new Date(), v.src, v.page, v.ua]);
-    return json_({ ok: true });
-  }
+    // === VISITS (pageview) -> Aba VISITS ===
+    (function sendPageview(){
+      const payload = {
+        type: "pageview",
+        payload: { src: srcBase, page: pagePath, ua: navigator.userAgent }
+      };
 
-  if (type === 'lead') {
-    const lead = normalizeLead_(payload);
-    const score = scoreLead_(lead);
-    const status = classify_(score);
+      try {
+        if (navigator.sendBeacon) {
+          const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=UTF-8" });
+          navigator.sendBeacon(WEBAPP_URL, blob);
+        } else {
+          fetch(WEBAPP_URL, {
+            method: "POST",
+            body: JSON.stringify(payload),
+            keepalive: true,
+            mode: "no-cors"
+          }).catch(()=>{});
+        }
+      } catch(e) {}
+    })();
 
-    ss.getSheetByName(SHEET_LEADS).appendRow([
-      new Date(),
-      lead.nome,
-      lead.whatsapp,
-      lead.bairro,
-      lead.tipo,
-      lead.entrada,
-      lead.prazo,
-      lead.src,
-      score,
-      status
-    ]);
+    // === LEAD submit -> Aba Leads (POST + fallback GET garantido) ===
+    const form = document.getElementById("vipForm");
+    const okbox = document.getElementById("okbox");
+    const btnSubmit = document.getElementById("btnSubmit");
 
-    return json_({ ok: true, score, status });
-  }
+    form.addEventListener("submit", (ev) => {
+      ev.preventDefault();
 
-  if (type === 'wa_click') {
-    const click = normalizeClick_(payload);
-    ss.getSheetByName(SHEET_CLICKS).appendRow([
-      new Date(),
-      click.src,
-      click.tipo,
-      click.bairro,
-      click.entrada,
-      click.prazo,
-      click.page,
-      click.ua
-    ]);
-    return json_({ ok: true });
-  }
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = "Enviando…";
 
-  return json_({ ok: false, error: 'type inválido. Use lead, wa_click ou pageview.' });
-}
+      const lead = {
+        nome: (document.getElementById("nome").value || "").trim(),
+        whatsapp: (document.getElementById("whatsapp").value || "").trim(),
+        bairro: document.getElementById("bairro").value || "",
+        tipo: document.getElementById("tipo").value || "",
+        entrada: document.getElementById("entrada").value || "",
+        prazo: document.getElementById("prazo").value || "",
+        src: srcBase,
+        page: pagePath,
+        ua: navigator.userAgent
+      };
 
-function doGet(e) {
-  const ss = getSpreadsheet_();
-  setupSheets_(ss);
+      const payload = { type: "lead", payload: lead };
 
-  const p = (e && e.parameter) ? e.parameter : {};
-  const event = normStr_(p.event || '', 20).toLowerCase();
+      try {
+        // 1) sendBeacon
+        if (navigator.sendBeacon) {
+          const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=UTF-8" });
+          navigator.sendBeacon(WEBAPP_URL, blob);
+        }
 
-  // TESTE de VISIT via GET:
-  // .../exec?event=visit&src=TESTE&page=/vip/&ua=EDGE
-  if (event === 'visit') {
-    const v = normalizeVisit_(p);
-    ss.getSheetByName(SHEET_VISITS).appendRow([new Date(), v.src, v.page, v.ua]);
-    return ContentService.createTextOutput('OK VISIT').setMimeType(ContentService.MimeType.TEXT);
-  }
+        // 2) fetch keepalive
+        fetch(WEBAPP_URL, {
+          method: "POST",
+          body: JSON.stringify(payload),
+          keepalive: true,
+          mode: "no-cors"
+        }).catch(()=>{});
 
-  // Fallback: registra clique via GET
-  const click = normalizeClick_(p);
-  ss.getSheetByName(SHEET_CLICKS).appendRow([
-    new Date(),
-    click.src,
-    click.tipo,
-    click.bairro,
-    click.entrada,
-    click.prazo,
-    click.page,
-    click.ua
-  ]);
+        // 3) ✅ fallback GET (garante gravar no Leads)
+        const qsLead = new URLSearchParams({
+          event: "lead",
+          src: lead.src,
+          nome: lead.nome,
+          whatsapp: lead.whatsapp,
+          bairro: lead.bairro,
+          tipo: lead.tipo,
+          entrada: lead.entrada,
+          prazo: lead.prazo,
+          page: lead.page,
+          ua: lead.ua
+        });
 
-  return ContentService.createTextOutput('OK').setMimeType(ContentService.MimeType.TEXT);
-}
+        (new Image()).src = `${WEBAPP_URL}?${qsLead.toString()}`;
+      } catch(e) {}
 
-/** =======================
- *  5) RELATÓRIOS E GATILHOS
- *  ======================= */
-function getReportEmail_(ss) {
-  const sh = ss.getSheetByName(SHEET_CONFIG);
-  const data = sh.getDataRange().getValues();
-  const row = data.find(r => r[0] === 'EMAIL_RELATORIO');
-  return (row && row[1]) || Session.getActiveUser().getEmail();
-}
+      okbox.classList.add("show");
+      okbox.scrollIntoView({ behavior: "smooth", block: "start" });
 
-function countBy_(rows, idx) {
-  return rows.reduce((acc, row) => {
-    const key = row[idx] || 'N/A';
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
-}
-
-function topN_(obj, n) {
-  return Object.fromEntries(
-    Object.entries(obj).sort((a,b) => b[1] - a[1]).slice(0, n)
-  );
-}
-
-function formatMap_(obj) {
-  const entries = Object.entries(obj || {});
-  if (!entries.length) return '- sem dados';
-  return entries.map(([k,v]) => `- ${k}: ${v}`).join('\n');
-}
-
-function sendDailyReport() {
-  const ss = getSpreadsheet_();
-  setupSheets_(ss);
-
-  const today = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
-
-  const clicks = ss.getSheetByName(SHEET_CLICKS).getDataRange().getValues();
-  const leads  = ss.getSheetByName(SHEET_LEADS).getDataRange().getValues();
-
-  const clickRows = clicks.slice(1).filter(r =>
-    Utilities.formatDate(new Date(r[0]), TZ, 'yyyy-MM-dd') === today
-  );
-
-  const leadRows = leads.slice(1).filter(r =>
-    Utilities.formatDate(new Date(r[0]), TZ, 'yyyy-MM-dd') === today
-  );
-
-  const bySrc = countBy_(clickRows, 1);
-  const byStatus = countBy_(leadRows, 9);
-  const byBairro = topN_(countBy_(leadRows, 3), 5);
-  const byTipo = topN_(countBy_(leadRows, 4), 5);
-
-  const body = [
-    `VIP Autopiloto - Relatório diário (${today})`,
-    '',
-    'Cliques no WhatsApp por origem (SRC):',
-    formatMap_(bySrc),
-    '',
-    'Leads por status:',
-    formatMap_(byStatus),
-    '',
-    'Top bairros (leads):',
-    formatMap_(byBairro),
-    '',
-    'Top tipos (leads):',
-    formatMap_(byTipo)
-  ].join('\n');
-
-  MailApp.sendEmail(getReportEmail_(ss), `VIP Autopiloto - Relatório diário ${today}`, body);
-}
-
-function sendFinal14DaysReport() {
-  const ss = getSpreadsheet_();
-  setupSheets_(ss);
-
-  const leads  = ss.getSheetByName(SHEET_LEADS).getDataRange().getValues().slice(1);
-  const clicks = ss.getSheetByName(SHEET_CLICKS).getDataRange().getValues().slice(1);
-
-  const since = new Date();
-  since.setDate(since.getDate() - 14);
-
-  const leadRows = leads.filter(r => new Date(r[0]) >= since);
-  const clickRows = clicks.filter(r => new Date(r[0]) >= since);
-
-  const avgScore = leadRows.length
-    ? (leadRows.reduce((acc, r) => acc + Number(r[8] || 0), 0) / leadRows.length).toFixed(1)
-    : 0;
-
-  const byStatus = countBy_(leadRows, 9);
-  const byBairro = topN_(countBy_(leadRows, 3), 5);
-  const byTipo = topN_(countBy_(leadRows, 4), 5);
-  const bySrc = topN_(countBy_(clickRows, 1), 8);
-
-  const body = [
-    'VIP Autopiloto - Relatório final (14 dias)',
-    '',
-    `Leads totais: ${leadRows.length}`,
-    `Cliques WhatsApp totais: ${clickRows.length}`,
-    `Score médio: ${avgScore}`,
-    '',
-    'Leads por status:',
-    formatMap_(byStatus),
-    '',
-    'Top bairros:',
-    formatMap_(byBairro),
-    '',
-    'Top tipos:',
-    formatMap_(byTipo),
-    '',
-    'Top origens (SRC):',
-    formatMap_(bySrc)
-  ].join('\n');
-
-  MailApp.sendEmail(getReportEmail_(ss), 'VIP Autopiloto - Relatório final 14 dias', body);
-}
-
-function installTriggers() {
-  ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
-
-  ScriptApp.newTrigger('sendDailyReport')
-    .timeBased()
-    .everyDays(1)
-    .atHour(20)
-    .nearMinute(30)
-    .inTimezone(TZ)
-    .create();
-
-  ScriptApp.newTrigger('sendFinal14DaysReport')
-    .timeBased()
-    .everyDays(14)
-    .atHour(20)
-    .nearMinute(30)
-    .inTimezone(TZ)
-    .create();
-}
-
-/** =======================
- *  6) SETUP INICIAL
- *  ======================= */
-function salvarIdDaPlanilha() {
-  const id = SpreadsheetApp.getActiveSpreadsheet().getId();
-  PropertiesService.getScriptProperties().setProperty(PROP_SPREADSHEET_ID, id);
-  Logger.log('SPREADSHEET_ID salvo: ' + id);
-}
+      btnSubmit.textContent = "Enviado ✅";
+      setTimeout(() => {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "Entrar na Lista VIP";
+      }, 1200);
+    });
+  </script>
+</body>
+</html>
