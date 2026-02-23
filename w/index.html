@@ -2,24 +2,12 @@
 <html lang="pt-br">
   <head>
     <meta charset="utf-8" />
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-FKWHL1D7R5"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-FKWHL1D7R5');
-</script>
-
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Lista VIP • Abrir WhatsApp</title>
   </head>
   <body style="font-family: Arial, sans-serif; padding: 24px; max-width: 720px;">
     <h2>Quase lá ✅</h2>
     <p>Para continuar, clique em um dos botões abaixo para abrir o WhatsApp.</p>
-
-    <p id="origem" style="color:#666; font-size: 13px; margin-top: 6px;"></p>
 
     <p>
       <a id="btnWa1" href="#" style="
@@ -41,51 +29,78 @@
     </p>
 
     <script>
-      // Apps Script (Web App) - endpoint
+      // === CONFIG ===
       const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzlSDAshFhVL0HJ1y1VTEdJVENb7QO5LSXEaCahyEsSIijVtjRVhL5RDAjCBz1uEpmn1g/exec";
       const PHONE = "5511996900033";
 
+      // === helpers ===
+      function newEid(){
+        return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+      }
+
+      // === query params ===
       const qs = new URLSearchParams(window.location.search);
       const src = qs.get("src") || "SITE";
+      const page = qs.get("page") || "";
+      const eid = qs.get("eid") || newEid(); // permite receber eid (se quiser no futuro)
 
-      // ✅ Se vier page=... (ex.: clique vindo de SEO), registra essa origem
-      const pageParam = qs.get("page") || "";
-      const page = pageParam ? decodeURIComponent(pageParam) : window.location.href;
-
-      document.getElementById("origem").textContent = pageParam ? `Origem (page): ${pageParam}` : `SRC: ${src}`;
-
-      // Mensagem do WhatsApp
-      const text = `Olá! Vim pela Lista VIP (SRC: ${src}). Quero opções de lançamento/em obras/pronto em São Paulo.`;
+      // === WhatsApp message ===
+      const text = `Olá! Vim pela Lista VIP (SRC: ${src}). Quero opções de lançamento/em obras/pronto em São Paulo e Cotia.`;
 
       const wa1 = `https://wa.me/${PHONE}?text=${encodeURIComponent(text)}`;
       const wa2 = `https://api.whatsapp.com/send?phone=${PHONE}&text=${encodeURIComponent(text)}`;
 
-      // Botões
+      // === Set links ===
       const btn1 = document.getElementById("btnWa1");
       const btn2 = document.getElementById("btnWa2");
       btn1.href = wa1;
       btn2.href = wa2;
-
-      // Link para copiar
       document.getElementById("waLink").textContent = wa1;
 
-      // ✅ REGISTRO ULTRA-CONFIÁVEL (GET "pixel")
-      // Evita problemas de CORS/Beacon no Edge.
-      const uaShort = (navigator.userAgent || "").slice(0, 180);
-      const ts = Date.now();
-      const pingUrl =
-        `${WEBAPP_URL}?src=${encodeURIComponent(src)}` +
-        `&page=${encodeURIComponent(page)}` +
-        `&ua=${encodeURIComponent(uaShort)}` +
-        `&ts=${encodeURIComponent(ts)}`;
+      // === send click (robusto, dedup no Apps Script via eid) ===
+      function sendClick(){
+        const payload = {
+          type: "wa_click",
+          payload: {
+            eid,
+            src,
+            page: window.location.href,
+            ua: navigator.userAgent
+          }
+        };
 
-      // dispara o ping
-      try {
-        const img = new Image();
-        img.src = pingUrl;
-      } catch (e) {}
+        try {
+          // 1) sendBeacon
+          if (navigator.sendBeacon) {
+            const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=UTF-8" });
+            navigator.sendBeacon(WEBAPP_URL, blob);
+          }
 
-      // Navegação por clique (compatível com Edge)
+          // 2) fetch keepalive
+          fetch(WEBAPP_URL, {
+            method: "POST",
+            body: JSON.stringify(payload),
+            keepalive: true,
+            mode: "no-cors"
+          }).catch(() => {});
+
+          // 3) fallback GET (também com eid, para dedupe)
+          const qsClick = new URLSearchParams({
+            eid,
+            src,
+            page: window.location.href,
+            ua: navigator.userAgent
+            // sem "event" => cai no fallback click do doGet()
+          });
+          (new Image()).src = `${WEBAPP_URL}?${qsClick.toString()}`;
+
+        } catch (e) {}
+      }
+
+      // registra ao abrir a página
+      sendClick();
+
+      // Forçar navegação por clique (compatível)
       btn1.addEventListener("click", (ev) => { ev.preventDefault(); window.location.href = wa1; });
       btn2.addEventListener("click", (ev) => { ev.preventDefault(); window.location.href = wa2; });
     </script>
