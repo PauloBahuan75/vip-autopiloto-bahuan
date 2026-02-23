@@ -15,7 +15,6 @@
     gtag('config', 'G-FKWHL1D7R5');
   </script>
 
-  <!-- CSS (no /vip, sobe 1 nível pra pegar /assets) -->
   <link rel="stylesheet" href="../assets/css/styles.css" />
 
   <style>
@@ -36,16 +35,12 @@
     .logo{font-weight:900}
     .hero{padding:22px 0}
     .hero h1{margin:0 0 10px}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#f3f3f3;font-size:12px;margin-bottom:10px}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#fff;color:#111;border:1px solid rgba(0,0,0,.12);font-size:12px;margin-bottom:10px}
     .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     .okbox{display:none;margin-top:16px}
     .okbox.show{display:block}
-    .warn{background:#fff7e6;border:1px solid #ffe2a8;padding:12px;border-radius:12px}
-
-    /* Contraste garantido */
-    .pill{background:#ffffff !important;color:#111111 !important;border:1px solid rgba(0,0,0,.12) !important;}
-    .warn{background:#fff3cd !important;border:1px solid #ffd28a !important;color:#111111 !important;}
-    .warn *{color:#111111 !important;}
+    .warn{background:#fff3cd;border:1px solid #ffd28a;padding:12px;border-radius:12px;color:#111}
+    .warn *{color:#111}
   </style>
 </head>
 
@@ -186,11 +181,9 @@
   </footer>
 
   <script>
-    // CONFIG
     const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzlSDAshFhVL0HJ1y1VTEdJVENb7QO5LSXEaCahyEsSIijVtjRVhL5RDAjCBz1uEpmn1g/exec";
     const BASE_W_PATH = "../w/";
 
-    // SRC / PAGE
     const qs = new URLSearchParams(window.location.search);
     const srcBase = qs.get("src") || "SITE";
     const pagePath = window.location.pathname + window.location.search;
@@ -198,51 +191,64 @@
     document.getElementById("src").value = srcBase;
     document.getElementById("page").value = pagePath;
 
+    function newEid(){
+      return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+    }
+
     // WhatsApp links via /w/
     function buildWUrl(extraTag) {
       const src = encodeURIComponent(srcBase + (extraTag ? ("-" + extraTag) : ""));
       const page = encodeURIComponent(pagePath);
       return `${BASE_W_PATH}?src=${src}&page=${page}`;
     }
+    document.getElementById("btnWaTop").href   = buildWUrl("VIPTOP");
+    document.getElementById("btnWaBig").href   = buildWUrl("VIPBIG");
+    document.getElementById("btnWaMid").href   = buildWUrl("VIPMID");
+    document.getElementById("btnWaAfter").href = buildWUrl("VIPAFTER");
 
-    const btnWaTop   = document.getElementById("btnWaTop");
-    const btnWaBig   = document.getElementById("btnWaBig");
-    const btnWaMid   = document.getElementById("btnWaMid");
-    const btnWaAfter = document.getElementById("btnWaAfter");
-
-    if (btnWaTop)   btnWaTop.href   = buildWUrl("VIPTOP");
-    if (btnWaBig)   btnWaBig.href   = buildWUrl("VIPBIG");
-    if (btnWaMid)   btnWaMid.href   = buildWUrl("VIPMID");
-    if (btnWaAfter) btnWaAfter.href = buildWUrl("VIPAFTER");
-
-    // VISITS (pageview)
-    (function sendPageview(){
-      const payload = {
-        type: "pageview",
-        payload: { src: srcBase, page: pagePath, ua: navigator.userAgent }
-      };
+    // Envio robusto (pode tentar mais de 1, mas dedupe no Apps Script via eid)
+    function sendEvent(payload){
       try {
         if (navigator.sendBeacon) {
           const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=UTF-8" });
           navigator.sendBeacon(WEBAPP_URL, blob);
-        } else {
-          fetch(WEBAPP_URL, { method:"POST", body: JSON.stringify(payload), keepalive:true, mode:"no-cors" }).catch(()=>{});
         }
+        fetch(WEBAPP_URL, { method:"POST", body: JSON.stringify(payload), keepalive:true, mode:"no-cors" }).catch(()=>{});
       } catch(e) {}
+    }
+
+    // ===== VISITS: 1 vez por aba/página =====
+    (function(){
+      const key = "VIP_VISIT_SENT::" + pagePath;
+      if (sessionStorage.getItem(key) === "1") return; // já enviou nessa aba
+      sessionStorage.setItem(key, "1");
+
+      const payload = {
+        type:"pageview",
+        payload:{ eid: newEid(), src: srcBase, page: pagePath, ua: navigator.userAgent }
+      };
+      sendEvent(payload);
     })();
 
-    // LEAD submit (POST + fallback GET)
+    // ===== LEAD: trava duplo submit + mesmo eid em tudo =====
     const form = document.getElementById("vipForm");
     const okbox = document.getElementById("okbox");
     const btnSubmit = document.getElementById("btnSubmit");
 
+    let sendingLead = false;
+
     form.addEventListener("submit", (ev) => {
       ev.preventDefault();
+      if (sendingLead) return;
+      sendingLead = true;
 
       btnSubmit.disabled = true;
       btnSubmit.textContent = "Enviando…";
 
+      const eid = newEid();
+
       const lead = {
+        eid,
         nome: (document.getElementById("nome").value || "").trim(),
         whatsapp: (document.getElementById("whatsapp").value || "").trim(),
         bairro: document.getElementById("bairro").value || "",
@@ -254,30 +260,24 @@
         ua: navigator.userAgent
       };
 
-      const payload = { type: "lead", payload: lead };
+      // 1) POST
+      sendEvent({ type:"lead", payload: lead });
 
-      try {
-        if (navigator.sendBeacon) {
-          const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=UTF-8" });
-          navigator.sendBeacon(WEBAPP_URL, blob);
-        }
-        fetch(WEBAPP_URL, { method:"POST", body: JSON.stringify(payload), keepalive:true, mode:"no-cors" }).catch(()=>{});
-
-        // fallback GET (garante gravar)
-        const qsLead = new URLSearchParams({
-          event: "lead",
-          src: lead.src,
-          nome: lead.nome,
-          whatsapp: lead.whatsapp,
-          bairro: lead.bairro,
-          tipo: lead.tipo,
-          entrada: lead.entrada,
-          prazo: lead.prazo,
-          page: lead.page,
-          ua: lead.ua
-        });
-        (new Image()).src = `${WEBAPP_URL}?${qsLead.toString()}`;
-      } catch(e) {}
+      // 2) fallback GET com o MESMO eid (o Script deduplica)
+      const qsLead = new URLSearchParams({
+        event:"lead",
+        eid: lead.eid,
+        src: lead.src,
+        nome: lead.nome,
+        whatsapp: lead.whatsapp,
+        bairro: lead.bairro,
+        tipo: lead.tipo,
+        entrada: lead.entrada,
+        prazo: lead.prazo,
+        page: lead.page,
+        ua: lead.ua
+      });
+      (new Image()).src = `${WEBAPP_URL}?${qsLead.toString()}`;
 
       okbox.classList.add("show");
       okbox.scrollIntoView({ behavior:"smooth", block:"start" });
@@ -286,6 +286,7 @@
       setTimeout(() => {
         btnSubmit.disabled = false;
         btnSubmit.textContent = "Entrar na Lista VIP";
+        sendingLead = false;
       }, 1200);
     });
   </script>
