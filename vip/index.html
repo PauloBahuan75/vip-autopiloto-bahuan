@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lista VIP Bahuan Imóveis | Lançamentos, Em Obras e Pronto em SP</title>
-  <meta name="description" content="Entre na Lista VIP da Bahuan Imóveis e receba oportunidades filtradas em Morumbi, Santo Amaro, Butantã, Vila Sônia. Vila Andrade, Cotia e região." />
+  <title>Lista VIP Bahuan Imóveis | Lançamentos, Em Obras e Pronto em SP e Cotia</title>
+  <meta name="description" content="Entre na Lista VIP da Bahuan Imóveis e receba oportunidades filtradas em Morumbi, Santo Amaro, Butantã, Vila Sônia, Vila Andrade e Cotia (e região)." />
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-FKWHL1D7R5"></script>
@@ -21,7 +21,7 @@
   <style>
     .container{max-width:980px;margin:0 auto;padding:0 16px;}
     .btn{display:inline-block;padding:12px 16px;border-radius:10px;text-decoration:none;font-weight:700}
-    .btn.primary{background:#111;color:#fff}
+    .btn.primary{background:#111;color:#fff;border:0;cursor:pointer}
     .btn.wa{background:#25D366;color:#fff}
     .muted{color:#666}
     .card{background:#fff;border:1px solid #eaeaea;border-radius:14px;padding:14px}
@@ -43,18 +43,9 @@
     .warn{background:#fff7e6;border:1px solid #ffe2a8;padding:12px;border-radius:12px}
 
     /* Contraste garantido */
-    .pill{
-      background:#ffffff !important;
-      color:#111111 !important;
-      border:1px solid rgba(0,0,0,.12) !important;
-    }
-    .warn{
-      background:#fff3cd !important;
-      border:1px solid #ffd28a !important;
-      color:#111111 !important;
-    }
-    .warn *{ color:#111111 !important; }
-    .warn .muted{ color:#333333 !important; }
+    .pill{background:#ffffff !important;color:#111111 !important;border:1px solid rgba(0,0,0,.12) !important;}
+    .warn{background:#fff3cd !important;border:1px solid #ffd28a !important;color:#111111 !important;}
+    .warn *{color:#111111 !important;}
   </style>
 </head>
 
@@ -78,18 +69,9 @@
       <p class="muted">Você informa <strong>bairro</strong>, <strong>entrada</strong> e <strong>prazo</strong>. A gente prioriza somente o que faz sentido e te atende no WhatsApp com contexto.</p>
 
       <div class="grid" style="margin-top:14px;">
-        <div class="card">
-          <strong>Filtro por momento</strong>
-          <div class="muted">Entrada e prazo definem prioridade.</div>
-        </div>
-        <div class="card">
-          <strong>Atendimento rápido</strong>
-          <div class="muted">WhatsApp com contexto já preenchido.</div>
-        </div>
-        <div class="card">
-          <strong>Bairros foco</strong>
-          <div class="muted">Morumbi, Santo Amaro, Butantã, Vila Sônia e Vila Andrade.</div>
-        </div>
+        <div class="card"><strong>Filtro por momento</strong><div class="muted">Entrada e prazo definem prioridade.</div></div>
+        <div class="card"><strong>Atendimento rápido</strong><div class="muted">WhatsApp com contexto já preenchido.</div></div>
+        <div class="card"><strong>Regiões foco</strong><div class="muted">Zona Sul/Oeste de SP + Cotia (e região).</div></div>
       </div>
 
       <div class="warn" style="margin-top:16px;">
@@ -128,7 +110,7 @@
 
         <div class="row">
           <div>
-            <label for="bairro">Bairro de interesse</label>
+            <label for="bairro">Bairro / região de interesse</label>
             <select id="bairro" name="bairro" required>
               <option value="">Selecione…</option>
               <option>Morumbi</option>
@@ -158,8 +140,8 @@
             <select id="entrada" name="entrada" required>
               <option value="">Selecione…</option>
               <option>Até R$ 10 mil</option>
-              <option>R$ 10 mil a R$ 20 mil</option>
-              <option>R$ 20 mil a R$ 50 mil</option>
+              <option>R$ 11 mil a R$ 20 mil</option>
+              <option>R$ 21 mil a R$ 50 mil</option>
               <option>Acima de R$ 50 mil</option>
             </select>
           </div>
@@ -199,16 +181,16 @@
 
   <footer>
     <div class="container" style="padding:18px 0;border-top:1px solid #eee;">
-      Bahuan Imóveis · São Paulo · WhatsApp: <a href="https://wa.me/5511996900033">(11) 99690-0033</a>
+      Bahuan Imóveis · SP e Cotia · WhatsApp: <a href="https://wa.me/5511996900033">(11) 99690-0033</a>
     </div>
   </footer>
 
   <script>
-    // === CONFIG ===
+    // CONFIG
     const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzlSDAshFhVL0HJ1y1VTEdJVENb7QO5LSXEaCahyEsSIijVtjRVhL5RDAjCBz1uEpmn1g/exec";
     const BASE_W_PATH = "../w/";
 
-    // === SRC / PAGE ===
+    // SRC / PAGE
     const qs = new URLSearchParams(window.location.search);
     const srcBase = qs.get("src") || "SITE";
     const pagePath = window.location.pathname + window.location.search;
@@ -216,7 +198,7 @@
     document.getElementById("src").value = srcBase;
     document.getElementById("page").value = pagePath;
 
-    // === Links WhatsApp (passa por /w/ para registrar em CLICKS) ===
+    // WhatsApp links via /w/
     function buildWUrl(extraTag) {
       const src = encodeURIComponent(srcBase + (extraTag ? ("-" + extraTag) : ""));
       const page = encodeURIComponent(pagePath);
@@ -233,29 +215,23 @@
     if (btnWaMid)   btnWaMid.href   = buildWUrl("VIPMID");
     if (btnWaAfter) btnWaAfter.href = buildWUrl("VIPAFTER");
 
-    // === VISITS (pageview) -> Aba VISITS ===
+    // VISITS (pageview)
     (function sendPageview(){
       const payload = {
         type: "pageview",
         payload: { src: srcBase, page: pagePath, ua: navigator.userAgent }
       };
-
       try {
         if (navigator.sendBeacon) {
           const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=UTF-8" });
           navigator.sendBeacon(WEBAPP_URL, blob);
         } else {
-          fetch(WEBAPP_URL, {
-            method: "POST",
-            body: JSON.stringify(payload),
-            keepalive: true,
-            mode: "no-cors"
-          }).catch(()=>{});
+          fetch(WEBAPP_URL, { method:"POST", body: JSON.stringify(payload), keepalive:true, mode:"no-cors" }).catch(()=>{});
         }
       } catch(e) {}
     })();
 
-    // === LEAD submit -> Aba Leads (POST + fallback GET garantido) ===
+    // LEAD submit (POST + fallback GET)
     const form = document.getElementById("vipForm");
     const okbox = document.getElementById("okbox");
     const btnSubmit = document.getElementById("btnSubmit");
@@ -281,21 +257,13 @@
       const payload = { type: "lead", payload: lead };
 
       try {
-        // 1) sendBeacon
         if (navigator.sendBeacon) {
           const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=UTF-8" });
           navigator.sendBeacon(WEBAPP_URL, blob);
         }
+        fetch(WEBAPP_URL, { method:"POST", body: JSON.stringify(payload), keepalive:true, mode:"no-cors" }).catch(()=>{});
 
-        // 2) fetch keepalive
-        fetch(WEBAPP_URL, {
-          method: "POST",
-          body: JSON.stringify(payload),
-          keepalive: true,
-          mode: "no-cors"
-        }).catch(()=>{});
-
-        // 3) ✅ fallback GET (garante gravar no Leads)
+        // fallback GET (garante gravar)
         const qsLead = new URLSearchParams({
           event: "lead",
           src: lead.src,
@@ -308,12 +276,11 @@
           page: lead.page,
           ua: lead.ua
         });
-
         (new Image()).src = `${WEBAPP_URL}?${qsLead.toString()}`;
       } catch(e) {}
 
       okbox.classList.add("show");
-      okbox.scrollIntoView({ behavior: "smooth", block: "start" });
+      okbox.scrollIntoView({ behavior:"smooth", block:"start" });
 
       btnSubmit.textContent = "Enviado ✅";
       setTimeout(() => {
